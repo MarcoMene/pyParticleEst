@@ -48,14 +48,14 @@ if __name__ == '__main__':
     num = 100
     P0 = 1.0
     Q = 1.0
-    R = 0.0001 * numpy.asarray(((1.0,),))
+    R = 1 * numpy.asarray(((1.0,),))
     (x, y) = generate_dataset(steps, P0, Q, R)
 
     model = Model(P0, Q, R)
     sim = simulator.Simulator(model, u=None, y=y)
     sim.simulate(num, 0)
-    plt.plot(range(steps + 1), x, 'r-')
-    plt.plot(range(1, steps + 1), y, 'bx')
+    plt.plot(range(steps + 1), x, 'r-', label="true x")
+    plt.plot(range(1, steps + 1), y, 'bx', label="y")
 
     vals = numpy.empty((num, steps + 1))
     (parts, _) = sim.get_filtered_estimates()
@@ -63,5 +63,6 @@ if __name__ == '__main__':
     for k in range(len(parts)):
         plt.plot((k,) * num, parts[k, :, 0], 'k.', markersize=1.0)
 
-    plt.plot(range(steps + 1), mvals, 'k-')
+    plt.plot(range(steps + 1), mvals, 'k-', label="filtered mean")
+    plt.legend()
     plt.show()

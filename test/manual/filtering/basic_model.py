@@ -59,8 +59,8 @@ class Model(interfaces.ParticleFiltering):
 
 
 if __name__ == '__main__':
-    steps = 50
-    num = 50
+    steps = 5
+    num = 5
     P0 = 1.0
     Q = 1.0
     R = numpy.asarray(((1.0,),))
@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     model = Model(P0, Q, R)
     sim = simulator.Simulator(model, u=None, y=y)
-    sim.simulate(num, num, smoother='ancestor')
+    sim.simulate(num, 0) #, smoother='ancestor')
 
     plt.plot(range(steps + 1), x, 'r-', label="true x")
     plt.plot(range(1, steps + 1), y, 'bx', label="y")
@@ -81,11 +81,11 @@ if __name__ == '__main__':
 
     plt.plot(range(steps + 1), vals[:, :, 0], 'k.', markersize=0.8)
 
-    svals = sim.get_smoothed_estimates()
+    # svals = sim.get_smoothed_estimates()
 
     # Plot "smoothed" trajectories to illustrate that the particle filter
     # suffers from degeneracy when considering the full trajectories
-    plt.plot(range(steps + 1), svals[:, :, 0], 'b--')
+    # plt.plot(range(steps + 1), svals[:, :, 0], 'b--')
     plt.plot(range(steps + 1), filter_mean, color="y", label="filter_mean")
     plt.plot(range(steps + 1), x, 'r-')
     plt.xlabel('t')

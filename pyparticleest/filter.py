@@ -909,13 +909,13 @@ class ParticleTrajectory(object):
         if (self.ind + 1 >= self.T):
             ushape = numpy.asarray(self.uvec.shape)
             ushape[0] = self.ind + 1
-            self.uvec.resize(ushape)
+            self.uvec.resize(ushape, refcheck=False)
             yshape = numpy.asarray(self.yvec.shape)
             yshape[0] = self.ind + 2
-            self.yvec.resize(yshape)
+            self.yvec.resize(yshape, refcheck=False)
             tshape = numpy.asarray(self.tvec.shape)
             tshape[0] = self.ind + 2
-            self.tvec.resize(tshape)
+            self.tvec.resize(tshape, refcheck=False)
             self.T = self.ind + 2
 
         ind = self.ind
