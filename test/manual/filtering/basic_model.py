@@ -73,10 +73,11 @@ if __name__ == '__main__':
     sim = simulator.Simulator(model, u=None, y=y)
     sim.simulate(num, num, smoother='ancestor')
 
-    plt.plot(range(steps + 1), x, 'r-')
-    plt.plot(range(1, steps + 1), y, 'bx')
+    plt.plot(range(steps + 1), x, 'r-', label="true x")
+    plt.plot(range(1, steps + 1), y, 'bx', label="y")
 
     (vals, _) = sim.get_filtered_estimates()
+    filter_mean = sim.get_filtered_mean()
 
     plt.plot(range(steps + 1), vals[:, :, 0], 'k.', markersize=0.8)
 
@@ -85,8 +86,10 @@ if __name__ == '__main__':
     # Plot "smoothed" trajectories to illustrate that the particle filter
     # suffers from degeneracy when considering the full trajectories
     plt.plot(range(steps + 1), svals[:, :, 0], 'b--')
+    plt.plot(range(steps + 1), filter_mean, color="y", label="filter_mean")
     plt.plot(range(steps + 1), x, 'r-')
     plt.xlabel('t')
     plt.ylabel('x')
+    plt.legend()
 
     plt.show()

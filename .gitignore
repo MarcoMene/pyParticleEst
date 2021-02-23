@@ -10,3 +10,5 @@ docs/_build/
 *.profile
 *.so
 
+*.iml
+*.xml
