@@ -8,18 +8,18 @@ import pyparticleest.interfaces as interfaces
 from trials_mm.utils_plots import plot_acf_pacf
 
 
-def generate_dataset(steps, x_mean, P0_x, delta_t=1.):
+def generate_dataset(steps, x_mean, P0_x):
     x = numpy.zeros(steps)
     y = numpy.zeros(steps)
 
     k = x_mean ** 2 / P0_x ** 2  # shape
     theta = P0_x ** 2 / x_mean  # scale
     x[0] = numpy.random.gamma(shape=k, scale=theta)
-    y[0] = numpy.random.poisson(lam=x[0] * delta_t)
+    y[0] = numpy.random.poisson(lam=x[0])
 
     for k in range(1, steps):
         x[k] = x[k - 1]
-        y[k] = numpy.random.poisson(lam=x[k] * delta_t)
+        y[k] = numpy.random.poisson(lam=x[k])
 
     return (x, y)
 
@@ -66,16 +66,14 @@ if __name__ == '__main__':
 
     steps = 100
     num = 500
-    nums = 100
+    nums = 40
 
-    x_mean = 0.5
+    x_mean = 3.
     P0_x = 1.0
 
-    delta_t = 1
+    (x, y) = generate_dataset(steps, x_mean, P0_x)
 
-    (x, y) = generate_dataset(steps, x_mean, P0_x, delta_t=delta_t)
-
-    model = PoissonModel(P0=P0_x, x_mean=1.)
+    model = PoissonModel(P0=P0_x*5, x_mean=1.)  # it's better to enlarge variance for initial sampling
     sim = pyparticleest.simulator.Simulator(model, u=None, y=y)
     sim.simulate(num, nums, smoother="ancestor")
     plt.plot(x, 'r-', label="true x")
@@ -84,14 +82,14 @@ if __name__ == '__main__':
     (vals, _) = sim.get_filtered_estimates()
     filter_mean = sim.get_filtered_mean()
 
-    # plt.plot(range(steps + 1), vals[:, :, 0], 'k.', markersize=0.8)
+    plt.plot(range(steps + 1), vals[:, :, 0], 'k.', markersize=0.8)
 
     svals = sim.get_smoothed_estimates()
     smoothed_mean = sim.get_smoothed_mean()
 
     # # Plot "smoothed" trajectories to illustrate that the particle filter
     # # suffers from degeneracy when considering the full trajectories
-    plt.plot(range(steps + 1), svals[:, :, 0], 'b--')
+    # plt.plot(range(steps + 1), svals[:, :, 0], 'b--')
     plt.plot(range(steps + 1), filter_mean, color="y", label="filter_mean")
     plt.plot(range(steps + 1), smoothed_mean, color="pink", label="smoothed_mean")
     plt.xlabel('t')
