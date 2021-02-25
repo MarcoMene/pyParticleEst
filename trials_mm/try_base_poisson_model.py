@@ -29,7 +29,7 @@ class PoissonModel(interfaces.ParticleFiltering):
             ---> MM implementation of Poisson
 
             x_{k+1} = x_k  <-- No variance on underlying rate
-            y_x_k = Poisson(x_k * dt)
+            y_x_k = Poisson(x_k)
             x(0) ~ Gamma(x_mean, P0)
 
             """
