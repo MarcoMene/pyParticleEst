@@ -150,9 +150,12 @@ if __name__ == '__main__':
     (x, y) = generate_dataset(steps, P0, Q, R)
     theta0 = numpy.log(numpy.asarray((2.0, 2.0)))
     model = Model(P0, Q, R)
+
+    print(f"Real parameters {Q, R}")
+
     estimator = param_est.ParamEstimation(model, u=None, y=y)
     callback(theta0, None, -1)
-    estimator.maximize(theta0, num, M, smoother='mcmc', meas_first=True, max_iter=len(iterations),
+    estimator.maximize(theta0, num, M, smoother='mcmc', meas_first=True, max_iter=20,
                        callback=callback)
 #     plt.ion()
 #     estimator.maximize(theta0, num, M, smoother='full', meas_first=True, max_iter=len(iterations),

@@ -258,6 +258,8 @@ class ParamEstBaseNumeric(ParamEstIntFullTraj):
         res = scipy.optimize.minimize(fun=fval, x0=self.params, method='l-bfgs-b', jac=False,
                                       options=dict({'maxiter':10, 'maxfun':100}),
                                       bounds=self.param_bounds,)
+        print(f"likelihood after minimization {res.fun}, sucess {res.success}")  # TODO remove
+
         return res.x
 
 class ParamEstBaseNumericGrad(ParamEstInterface_GradientSearchFullTraj):
