@@ -66,7 +66,7 @@ class ParamEstInterface(ParamEstIntFullTraj):
                                        sest[i + 1],
                                        ut[i], tt[i])
             logp_xnext += numpy.sum(val)
-        return logp_xnext / M
+        return logp_xnext / M   # expected value
 
     def eval_logp_y_fulltraj(self, straj, yt, tt):
         logp_y = 0.0
@@ -78,7 +78,7 @@ class ParamEstInterface(ParamEstIntFullTraj):
                 val = self.eval_logp_y(sest[i], yt[i], tt[i])
                 logp_y += numpy.sum(val)
 
-        return logp_y / M
+        return logp_y / M   # expected value
 
     def eval_logp_xnext(self, particles, particles_next, u, t):
         """
@@ -95,7 +95,7 @@ class ParamEstInterface(ParamEstIntFullTraj):
 
         Returns: (array-like) or (float)
         """
-        # Here we can just reuse the method used in the particle smoothing as default
+        # Here we can just reuse the method used in the particle smoothing as default  # FIXME non ce l'hai sempre
         return self.logp_xnext(particles, particles_next, u, t)
 
     def eval_logp_y(self, particles, y, t):
@@ -239,8 +239,15 @@ class ParamEstBaseNumeric(ParamEstIntFullTraj):
         self.param_bounds = bounds
 
     def maximize(self, straj):
+        """
+        returs parameters and Q function value, to allow early stopping
+
+        :param straj:
+        :return:
+        """
+
         def fval(params_val):
-            """ internal function """
+            """ internal function Q = I1 + I2 + I3 """
             self.set_params(params_val)
             log_py = self.eval_logp_y_fulltraj(straj,
                                                straj.y,
@@ -255,12 +262,12 @@ class ParamEstBaseNumeric(ParamEstIntFullTraj):
             val = -1.0 * (log_py + log_px0 + log_pxnext)
             return val
 
-        res = scipy.optimize.minimize(fun=fval, x0=self.params, method='l-bfgs-b', jac=False,
+        res = scipy.optimize.minimize(fun=fval, x0=self.params, method='l-bfgs-b', jac=False,   # I'd allow for more methods
                                       options=dict({'maxiter':10, 'maxfun':100}),
                                       bounds=self.param_bounds,)
-        print(f"likelihood after minimization {res.fun}, sucess {res.success}")  # TODO remove
+        # print(f"likelihood after minimization {res.fun}, sucess {res.success}")  # TODO remove
 
-        return res.x
+        return res.x, -res.fun
 
 class ParamEstBaseNumericGrad(ParamEstInterface_GradientSearchFullTraj):
     def __init__(self, param_bounds=None, **kwargs):

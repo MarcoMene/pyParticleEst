@@ -6,6 +6,7 @@ classes of algorithms present in the framework
 import abc
 import numpy
 
+
 class SIR():
     __metaclass__ = abc.ABCMeta
 
@@ -153,7 +154,6 @@ class ParticleFilteringNonMarkov():
         else:
             return numpy.copy(particles)
 
-
     def sample_smooth(self, part, ptraj, anc, future_trajs, find, ut, yt, tt, cur_ind):
         """
         Create sampled estimates for the smoothed trajectory. Allows the update
@@ -289,7 +289,6 @@ class ParticleFiltering(ParticleFilteringNonMarkov):
         pass
 
 
-
 class AuxiliaryParticleFiltering(object):
     """
     Base class for particles to be used with auxiliary particle filtering
@@ -316,6 +315,7 @@ class AuxiliaryParticleFiltering(object):
         """
         pass
 
+
 class FFBSiNonMarkov(object):
     __metaclass__ = abc.ABCMeta
 
@@ -326,6 +326,7 @@ class FFBSiNonMarkov(object):
     @abc.abstractmethod
     def logp_xnext_singlestep(self, part, past_trajs, pind, future_parts, find, ut, yt, tt, cur_ind):
         pass
+
 
 class FFProposeFromMeasure(FFBSiNonMarkov):
     __metaclass__ = abc.ABCMeta
@@ -425,11 +426,13 @@ class FFBSi(FFBSiNonMarkov):
         """
         pass
 
+
 class FFBSiRSNonMarkov(FFBSiNonMarkov):
     """
     Base class for models to be used with rejection sampling methods
     """
     __metaclass__ = abc.ABCMeta
+
     @abc.abstractmethod
     def logp_xnext_max_full(self, part, past_trajs, pind, uvec, yvec, tvec, cur_ind):
         """
@@ -458,6 +461,7 @@ class FFBSiRS(FFBSi):
     Base class for models to be used with rejection sampling methods
     """
     __metaclass__ = abc.ABCMeta
+
     @abc.abstractmethod
     def logp_xnext_max(self, particles, u, t):
         """
@@ -477,9 +481,9 @@ class FFBSiRS(FFBSi):
         """
         pass
 
-
     def logp_xnext_max_full(self, part, past_trajs, pind, uvec, yvec, tvec, cur_ind):
         return self.logp_xnext_max(part, u=uvec[cur_ind], t=tvec[cur_ind])
+
 
 class SampleProposer(object):
     """
@@ -487,6 +491,7 @@ class SampleProposer(object):
     samples. Here 'q' is the name we give to the proposal distribtion.
     """
     __metaclass__ = abc.ABCMeta
+
     @abc.abstractmethod
     def propose_smooth(self, ptraj, anc, future_trajs, find, yt, ut, tt, cur_ind):
         """

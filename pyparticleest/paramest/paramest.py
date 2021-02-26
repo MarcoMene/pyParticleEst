@@ -32,7 +32,7 @@ class ParamEstimation(Simulator):
            up the smoother
          - max_iter (int): Max number of EM-iterations to perform
          - tol (float): When the different in loglikelihood between two iterations
-           is less that his value the algorithm is terminated
+           is less that this value the algorithm is terminated
          - callback (function): Callback after each EM-iteration with new estimate
          - callback_sim (function): Callback after each simulation
          - bounds (array-like): Hard bounds on parameter estimates
@@ -45,45 +45,40 @@ class ParamEstimation(Simulator):
         """
 
         params_local = numpy.copy(param0)
-        Q = -numpy.Inf
+        Q_old = -numpy.Inf
         for i in range(max_iter):
-            Q_old = Q
             self.set_params(params_local)
-            if (numpy.isscalar(num_part)):
+            if numpy.isscalar(num_part):
                 nump = num_part
             else:
-                if (i < len(num_part)):
+                if i < len(num_part):
                     nump = num_part[i]
                 else:
                     nump = num_part[-1]
-            if (numpy.isscalar(num_traj)):
+            if numpy.isscalar(num_traj):
                 numt = num_traj
             else:
-                if (i < len(num_traj)):
+                if i < len(num_traj):
                     numt = num_traj[i]
                 else:
                     numt = num_traj[-1]
 
             self.simulate(nump, numt, filter=filter, smoother=smoother,
                           smoother_options=smoother_options, meas_first=meas_first)
-            if (callback_sim is not None):
+            if callback_sim is not None:
                 callback_sim(self)
 
-            params_local = self.model.maximize(self.straj)
+            params_local, Q = self.model.maximize(self.straj)
             # res = scipy.optimize.minimize(fun=fval, x0=params, method='nelder-mead', jac=fgrad)
 
-            # FIXME: Q value not accesible (not needed?)
-            # Should the callback define when we terminate the EM-algorithm?
-            # (Q, Q_grad) = fval(params_local)
-            #Q = fval(params_local)
-            #Q = -Q
-            # Q_grad = -Q_grad
-            if (callback is not None):
-                callback(params=params_local, Q=-numpy.Inf, cur_iter=i)  # , Q=Q)
-#            if (numpy.abs(Q - Q_old) < tol):
-#                break
-        # return (params_local, Q)
-        return (params_local, -numpy.Inf)
+            if callback is not None:
+                callback(params=params_local, Q=Q, cur_iter=i)
+
+            # add stopping condition, using likelihood
+            if numpy.fabs(Q - Q_old) < tol:
+                break
+            Q_old = Q
+        return params_local, Q
 
 
 def alpha_gen(it):
@@ -187,7 +182,7 @@ class ParamEstimationSAEM(Simulator):
 class ParamEstimationPSAEM(Simulator):
     """
     Extension of the Simulator class to iterative perform particle smoothing
-    combined with a gradienst search algorithms for maximizing the likelihood
+    combined with a gradient search algorithms for maximizing the likelihood
     of the parameter estimates
     """
 

@@ -157,16 +157,15 @@ if __name__ == '__main__':
     # learning paramaters
 
     def callback(params, Q, cur_iter):
-        print(f"params = {params}")
+        print(f"params = {params}, Q {Q}")
 
     print(f"Real parameters {x0, phi, Q}")
 
-    param0 = numpy.asarray([x0*1.2, phi/1.2, Q*1.2])
+    param0 = numpy.asarray([x0*1.2, phi, Q*1.2])
     estimator = param_est.ParamEstimation(model, u=None, y=y)   # subclass of Simulator
 
     model.set_param_bounds(Bounds([-numpy.inf, -1, 0.0001], [numpy.inf, 1, 10]))
 
-    callback(param0, None, -1)
     params_estimated, _ = estimator.maximize(param0, num, nums, smoother='mcmc', meas_first=True, max_iter=5,
                        callback=callback)
 
