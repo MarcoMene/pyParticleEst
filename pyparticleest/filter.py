@@ -77,7 +77,7 @@ class ParticleFilter(object):
         pa = ParticleApproximation(traj[-1].pa.part, traj[-1].pa.w)
 
         resampled = False
-        if (self.res > 0 and pa.calc_Neff() < self.res * pa.num):
+        if self.res > 0 and pa.calc_Neff() < self.res * pa.num:
             # Store the ancestor of each resampled particle
             ancestors = pa.resample(self.model, pa.num)
             resampled = True
@@ -88,15 +88,15 @@ class ParticleFilter(object):
                          uvec=uvec, yvec=yvec,
                          tvec=tvec, cur_ind=cur_ind,
                          pa=pa, inplace=True, )
-        if (yvec is not None):
+        if yvec is not None:
             pa = self.measure(traj=traj, ancestors=ancestors, pa=pa,
                               # There is no 'u' for last step yet
                               uvec=uvec, yvec=yvec, tvec=tvec, cur_ind=cur_ind + 1)
-        return (pa, resampled, ancestors)
+        return pa, resampled, ancestors
 
     def update(self, traj, ancestors, uvec, yvec, tvec, cur_ind, pa, inplace=True):
         """
-        Update particle approximation of x_t to x_{t+1} using u as input.
+        Update particle approximation of x_t to x_{t+1} using u as input.  (predict)
 
         Args:
          - traj (array-like): approximation for time t
@@ -113,7 +113,7 @@ class ParticleFilter(object):
             ParticleApproximation for time t+1
         """
 
-        if (not inplace):
+        if not inplace:
             pa = ParticleApproximation(self.model.copy_ind(traj[-1].pa.part,
                                                            ancestors),
                                        traj[-1].pa.w[ancestors])
@@ -147,7 +147,7 @@ class ParticleFilter(object):
             ParticleApproximation for time t
         """
 
-        if (not inplace):
+        if not inplace:
             pa_out = copy.deepcopy(pa)
             pa = pa_out
 
@@ -898,13 +898,13 @@ class ParticleTrajectory(object):
          (bool) True if the particle approximation was resampled
         """
 
-        if (len(self.traj) == 0):
+        if len(self.traj) == 0:
             self.ind = 0
             particles = self.pf.create_initial_estimate(self.N)
             pa = ParticleApproximation(particles=particles)
             self.traj.append(TrajectoryStep(pa, ancestors=numpy.arange(self.N)))
 
-        if (self.ind + 1 >= self.T):
+        if self.ind + 1 >= self.T:
             ushape = numpy.asarray(self.uvec.shape)
             ushape[0] = self.ind + 1
             self.uvec.resize(ushape, refcheck=False)
@@ -942,7 +942,7 @@ class ParticleTrajectory(object):
          None
         """
 
-        if (self.ind + 1 >= self.T):
+        if self.ind + 1 >= self.T:
             ushape = numpy.asarray(self.uvec.shape)
             ushape[0] = self.ind + 2
             self.uvec.resize(ushape)
@@ -954,7 +954,7 @@ class ParticleTrajectory(object):
             self.tvec.resize(tshape)
             self.T = self.ind + 2
 
-        if (self.using_pfy):
+        if self.using_pfy:
             self.ind += 1
             self.yvec[self.ind] = y
             self.tvec[self.ind] = self.ind
@@ -970,7 +970,7 @@ class ParticleTrajectory(object):
                                  inplace=False)
             self.traj.append(TrajectoryStep(pa, ancestors=ancestors))
         else:
-            if (len(self.traj) == 0):
+            if len(self.traj) == 0:
                 self.ind = 0
                 particles = self.pf.create_initial_estimate(self.N)
                 pa = ParticleApproximation(particles=particles)
@@ -1064,7 +1064,7 @@ class ParticleApproximation(object):
     """
 
     def __init__(self, particles=None, logw=None, seed=None, num=None):
-        if (particles is not None):
+        if particles is not None:
             self.part = numpy.copy(numpy.asarray(particles))
             num = len(particles)
         else:
@@ -1072,7 +1072,7 @@ class ParticleApproximation(object):
             for k in range(num):
                 self.part[k] = copy.deepcopy(seed)
 
-        if (logw is not None):
+        if logw is not None:
             self.w = numpy.copy(logw)
         else:
             self.w = -math.log(num) * numpy.ones(num)

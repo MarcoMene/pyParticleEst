@@ -15,7 +15,7 @@ from .filter import ParticleTrajectory
 
 class Simulator():
     """
-    Class interfacing filters/smoothers to assisst in solving estimation problem
+    Class interfacing filters/smoothers to assist in solving estimation problem
 
     Args:
      - model: object of class describing problem type
@@ -26,7 +26,7 @@ class Simulator():
     """
 
     def __init__(self, model: ParticleFiltering, u, y):
-        if (u is not None):
+        if u is not None:
             self.u = u
         else:
             self.u = [None] * len(y)
@@ -102,7 +102,7 @@ class Simulator():
 
         offset = 0
         # Run particle filter
-        if (meas_first):
+        if meas_first:
             self.pt.measure(self.y[0])
             offset = 1
         for i in range(offset, len(self.y)):
@@ -111,7 +111,7 @@ class Simulator():
                 resamplings = resamplings + 1
 
         # Use the filtered estimates above to created smoothed estimates
-        if (smoother is not None and num_traj > 0):
+        if smoother is not None and num_traj > 0:
             self.straj = self.pt.perform_smoothing(num_traj, method=smoother,
                                                    smoother_options=smoother_options)
         return resamplings
