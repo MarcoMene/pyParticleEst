@@ -7,12 +7,13 @@ import abc
 import numpy
 import scipy.optimize
 
-class ParamEst(object):
-    __metaclass__ = abc.ABCMeta
+
+class ParamEst(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def maximize(self, straj):
         pass
+
 
 class ParamEstIntFullTraj(object):
     __metaclass__ = abc.ABCMeta
@@ -49,12 +50,12 @@ class ParamEstIntFullTraj(object):
     def eval_logp_y_fulltraj(self, straj, yt, tt):
         pass
 
+
 class ParamEstInterface(ParamEstIntFullTraj):
     """ Interface s for particles to be used with the parameter estimation
         algorithm presented in [1]
         [1] - 'System identification of nonlinear state-space models' by Schon, Wills and Ninness """
     __metaclass__ = abc.ABCMeta
-
 
     def eval_logp_xnext_fulltraj(self, straj, ut, tt):
         logp_xnext = 0.0
@@ -66,7 +67,7 @@ class ParamEstInterface(ParamEstIntFullTraj):
                                        sest[i + 1],
                                        ut[i], tt[i])
             logp_xnext += numpy.sum(val)
-        return logp_xnext / M   # expected value
+        return logp_xnext / M  # expected value
 
     def eval_logp_y_fulltraj(self, straj, yt, tt):
         logp_y = 0.0
@@ -78,7 +79,7 @@ class ParamEstInterface(ParamEstIntFullTraj):
                 val = self.eval_logp_y(sest[i], yt[i], tt[i])
                 logp_y += numpy.sum(val)
 
-        return logp_y / M   # expected value
+        return logp_y / M  # expected value
 
     def eval_logp_xnext(self, particles, particles_next, u, t):
         """
@@ -117,7 +118,6 @@ class ParamEstInterface(ParamEstIntFullTraj):
         # Default implementation, doesn't work for classes were the measure updates
         # the internal state of the particle (e.g Rao-Blackwellized models)
         return self.measure(particles, y, t)
-
 
 
 class ParamEstInterface_GradientSearchFullTraj(ParamEstInterface):
@@ -262,12 +262,14 @@ class ParamEstBaseNumeric(ParamEstIntFullTraj):
             val = -1.0 * (log_py + log_px0 + log_pxnext)
             return val
 
-        res = scipy.optimize.minimize(fun=fval, x0=self.params, method='l-bfgs-b', jac=False,   # I'd allow for more methods
-                                      options=dict({'maxiter':10, 'maxfun':100}),
-                                      bounds=self.param_bounds,)
+        res = scipy.optimize.minimize(fun=fval, x0=self.params, method='l-bfgs-b', jac=False,
+                                      # I'd allow for more methods
+                                      options=dict({'maxiter': 10, 'maxfun': 100}),
+                                      bounds=self.param_bounds, )
         # print(f"likelihood after minimization {res.fun}, sucess {res.success}")  # TODO remove
 
         return res.x, -res.fun
+
 
 class ParamEstBaseNumericGrad(ParamEstInterface_GradientSearchFullTraj):
     def __init__(self, param_bounds=None, **kwargs):
@@ -278,7 +280,6 @@ class ParamEstBaseNumericGrad(ParamEstInterface_GradientSearchFullTraj):
         self.param_bounds = bounds
 
     def maximize(self, straj):
-
         def fval_grad(params_val):
             """ internal function """
             self.set_params(params_val)
@@ -297,7 +298,7 @@ class ParamEstBaseNumericGrad(ParamEstInterface_GradientSearchFullTraj):
             return (val, grad)
 
         res = scipy.optimize.minimize(fun=fval_grad, x0=self.params, method='l-bfgs-b', jac=True,
-                                      options=dict({'maxiter':10, 'maxfun':100}),
-                                      bounds=self.param_bounds,)
+                                      options=dict({'maxiter': 10, 'maxfun': 100}),
+                                      bounds=self.param_bounds, )
 
         return res.x

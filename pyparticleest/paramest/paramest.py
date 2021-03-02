@@ -68,7 +68,7 @@ class ParamEstimation(Simulator):
             if callback_sim is not None:
                 callback_sim(self)
 
-            params_local, Q = self.model.maximize(self.straj)
+            params_local, Q = self.model.maximize(self.straj)   # FIXME ParticleFiltering non richiede questo metodo
             # res = scipy.optimize.minimize(fun=fval, x0=params, method='nelder-mead', jac=fgrad)
 
             if callback is not None:

@@ -156,55 +156,55 @@ if __name__ == '__main__':
 
     # learning paramaters
 
-    def callback(params, Q, cur_iter):
-        print(f"params = {params}, Q {Q}")
-
-    print(f"Real parameters {x0, phi, Q}")
-
-    param0 = numpy.asarray([x0*1.2, phi, Q*1.2])
-    estimator = param_est.ParamEstimation(model, u=None, y=y)   # subclass of Simulator
-
-    model.set_param_bounds(Bounds([-numpy.inf, -1, 0.0001], [numpy.inf, 1, 10]))
-
-    params_estimated, _ = estimator.maximize(param0, num, nums, smoother='mcmc', meas_first=True, max_iter=5,
-                       callback=callback)
-
-
-    model.set_params(params_estimated)
-    print(f"model parameters second iteration {model.params}")
-
-    numpy.random.seed(666)
-    sim.simulate(num, nums, smoother="mcmc", meas_first=True)   # meas_first is needed to treat the first y as measurement
-
-    plt.figure(3)
-    plt.title("filtering with estimated parameters")
-    plt.plot(exp(x), 'r-', label="exp(x)  [true]")
-    plt.plot(y, 'bx', label="y")
-    (vals, _) = sim.get_filtered_estimates()
-    filter_mean = sim.get_filtered_mean()
-
-    # svals = sim.get_smoothed_estimates()
-    smoothed_mean = sim.get_smoothed_mean()
+    # def callback(params, Q, cur_iter):
+    #     print(f"params = {params}, Q {Q}")
     #
-    # # # Plot "smoothed" trajectories to illustrate that the particle filter
-    # # # suffers from degeneracy when considering the full trajectories
-    # # plt.plot(range(steps + 1), svals[:, :, 0], 'b--')
-    plt.plot(exp(filter_mean), color="y", label="exp(filter_mean)")
-    plt.xlabel('t')
+    # print(f"Real parameters {x0, phi, Q}")
+    #
+    # param0 = numpy.asarray([x0*1.2, phi, Q*1.2])
+    # estimator = param_est.ParamEstimation(model, u=None, y=y)   # subclass of Simulator
+    #
+    # model.set_param_bounds(Bounds([-numpy.inf, -1, 0.0001], [numpy.inf, 1, 10]))
+    #
+    # params_estimated, _ = estimator.maximize(param0, num, nums, smoother='mcmc', meas_first=True, max_iter=5,
+    #                    callback=callback)
+    #
+    #
+    # model.set_params(params_estimated)
+    # print(f"model parameters second iteration {model.params}")
+    #
+    # numpy.random.seed(666)
+    # sim.simulate(num, nums, smoother="mcmc", meas_first=True)   # meas_first is needed to treat the first y as measurement
+    #
+    # plt.figure(3)
+    # plt.title("filtering with estimated parameters")
+    # plt.plot(exp(x), 'r-', label="exp(x)  [true]")
+    # plt.plot(y, 'bx', label="y")
+    # (vals, _) = sim.get_filtered_estimates()
+    # filter_mean = sim.get_filtered_mean()
 
-    plt.title('Poisson particle filter, variable rate')
-    plt.legend()
-
-    # residuals = y - filter_mean.T[0][:-1]
-    # plot_acf_pacf(residuals, title="residuals autocorrelations")
-
-    plt.figure(4)
-    plt.title("filtering with estimated parameters")
-    plt.plot(vals[:, :, 0], 'k.', markersize=0.8)
-    plt.plot(x, 'r-', label="x [true]")
-    plt.plot(filter_mean, color="y", label="filter_mean")
-    plt.plot(smoothed_mean, color="pink", label="smoothed_mean")
-    plt.legend()
+    # # svals = sim.get_smoothed_estimates()
+    # smoothed_mean = sim.get_smoothed_mean()
+    # #
+    # # # # Plot "smoothed" trajectories to illustrate that the particle filter
+    # # # # suffers from degeneracy when considering the full trajectories
+    # # # plt.plot(range(steps + 1), svals[:, :, 0], 'b--')
+    # plt.plot(exp(filter_mean), color="y", label="exp(filter_mean)")
+    # plt.xlabel('t')
+    #
+    # plt.title('Poisson particle filter, variable rate')
+    # plt.legend()
+    #
+    # # residuals = y - filter_mean.T[0][:-1]
+    # # plot_acf_pacf(residuals, title="residuals autocorrelations")
+    #
+    # plt.figure(4)
+    # plt.title("filtering with estimated parameters")
+    # plt.plot(vals[:, :, 0], 'k.', markersize=0.8)
+    # plt.plot(x, 'r-', label="x [true]")
+    # plt.plot(filter_mean, color="y", label="filter_mean")
+    # plt.plot(smoothed_mean, color="pink", label="smoothed_mean")
+    # plt.legend()
 
 
 

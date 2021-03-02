@@ -9,6 +9,7 @@ import numpy
 
 from builtins import range
 
+from pyparticleest.interfaces import ParticleFiltering
 from .filter import ParticleTrajectory
 
 
@@ -24,7 +25,7 @@ class Simulator():
        to the particlar model class being used
     """
 
-    def __init__(self, model, u, y):
+    def __init__(self, model: ParticleFiltering, u, y):
         if (u is not None):
             self.u = u
         else:
@@ -40,10 +41,10 @@ class Simulator():
         Set the parameters of the model (if any)
 
         Args:
-         - params (array-like): Model specific paremeters
+         - params (array-like): Model specific parameters
         """
         self.params = numpy.copy(params)
-        self.model.set_params(self.params)
+        self.model.set_params(self.params)  # FIXME ParticleFiltering non richiede questo metodo
 
     def simulate(self, num_part, num_traj,
                  filter='PF', filter_options=None,

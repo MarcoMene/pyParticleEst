@@ -9,8 +9,9 @@ import matplotlib.pyplot as plt
 from pyparticleest.models.ltv import LTV
 
 R = numpy.array([[0.1]])
-Q = numpy.diag([ 0.1, 0.1])
+Q = numpy.diag([0.1, 0.1])
 gradient_test = True
+
 
 def generate_reference(z0, P0, theta_true, steps):
     A = numpy.asarray(((1.0, theta_true), (0.0, 1.0)))
@@ -21,7 +22,6 @@ def generate_reference(z0, P0, theta_true, steps):
     x0 = numpy.random.multivariate_normal(z0.ravel(), P0)
     states[0] = numpy.copy(x0)
     for i in range(steps):
-
         # Calc linear states
         x = states[i].reshape((-1, 1))
         xn = A.dot(x) + numpy.random.multivariate_normal(numpy.zeros(x0.shape), Q).reshape((-1, 1))
@@ -32,9 +32,11 @@ def generate_reference(z0, P0, theta_true, steps):
 
     return (y, states)
 
+
 class ParticleParamTrans(LTV, pestinf.ParamEstBaseNumericGrad,
                          pestinf.ParamEstInterface_GradientSearch):
     """ Implement a simple system by extending the MixedNLGaussian class """
+
     def __init__(self, z0, P0, params):
         """ Define all model variables """
         self.params = numpy.copy(params)
@@ -44,7 +46,7 @@ class ParticleParamTrans(LTV, pestinf.ParamEstBaseNumericGrad,
         z0 = numpy.copy(z0).reshape((-1, 1))
         # Linear states handled by base-class
         super(ParticleParamTrans, self).__init__(z0=z0, P0=P0, A=A,
-                                                C=C, R=R, Q=Q,)
+                                                 C=C, R=R, Q=Q, )
 
     def set_params(self, params):
         """ New set of parameters """
@@ -57,12 +59,15 @@ class ParticleParamTrans(LTV, pestinf.ParamEstBaseNumericGrad,
     def get_pred_dynamics_grad(self, u, t):
         return (self.A_grad, None, None)
 
+
 z0 = numpy.array([0.0, 1.0, ])
 P0 = numpy.eye(2)
 
+
 def callback(params, Q):
-    print "Q=%f, params=%s" % (Q, params)
+    print("Q=%f, params=%s" % (Q, params))
     return
+
 
 if __name__ == '__main__':
 
@@ -74,6 +79,7 @@ if __name__ == '__main__':
     # How many steps forward in time should our simulation run
     steps = 200
     model = ParticleParamTrans(z0=z0, P0=P0, params=(theta_true,))
+
 
     def callback_sim(pe):
         plt.clf()
@@ -88,6 +94,7 @@ if __name__ == '__main__':
         plt.plot(range(steps + 1), sest[:, 0, 1] + numpy.sqrt(sest[:, 0, 5]), 'b--')
         plt.draw()
 
+
     if (gradient_test):
         (y, x) = generate_reference(z0, P0, theta_true, steps)
         gt = gradienttest.GradientTest(model, u=None, y=y)
@@ -100,7 +107,6 @@ if __name__ == '__main__':
 
         plt.figure(1)
         callback_sim(gt)
-
 
         gt.plot_y.plot(2)
         gt.plot_xn.plot(3)
@@ -124,23 +130,22 @@ if __name__ == '__main__':
         fig2 = plt.figure()
 
         for k in range(sims):
-            print k
+            print(k)
             # Create reference
             (y, x) = generate_reference(z0, P0, theta_true, steps)
 
             plt.figure(fig1.number)
             plt.clf()
 
-
             # Create an array for our particles
             pe = paramest.ParamEstimation(model=model, u=None, y=y)
             pe.set_params(numpy.array((theta_guess,)).reshape((-1, 1)))
 
             # ParamEstimator.simulate(num_part=num, num_traj=nums)
-            print "maximization start"
-#            (param, Qval) = pe.maximize(param0=numpy.array((theta_guess,)), num_part=num, num_traj=nums,
-#                                        max_iter=max_iter, callback_sim=callback_sim, tol=tol, callback=callback,
-#                                        analytic_gradient=False)
+            print("maximization start")
+            #            (param, Qval) = pe.maximize(param0=numpy.array((theta_guess,)), num_part=num, num_traj=nums,
+            #                                        max_iter=max_iter, callback_sim=callback_sim, tol=tol, callback=callback,
+            #                                        analytic_gradient=False)
             (param, Qval) = pe.maximize(param0=numpy.array((theta_guess,)),
                                         num_part=num, num_traj=nums,
                                         max_iter=max_iter, tol=tol)
@@ -153,13 +158,11 @@ if __name__ == '__main__':
             plt.show()
             plt.draw()
 
-
-
     plt.ioff()
     if (not gradient_test):
-        print "mean: %f" % numpy.mean(estimate)
-        print "stdd: %f" % numpy.std(estimate)
+        print("mean: %f" % numpy.mean(estimate))
+        print("stdd: %f" % numpy.std(estimate))
         plt.hist(estimate.T)
         plt.show()
         plt.draw()
-    print "exit"
+    print("exit")

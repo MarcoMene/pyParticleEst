@@ -4,14 +4,15 @@
 """
 
 import numpy
-import copy
 
 from builtins import range
 
+from pyparticleest.interfaces import FFBSi, ParticleFiltering
 from . import filter as pf
-from .filter import ParticleApproximation, TrajectoryStep
+from .filter import ParticleApproximation, TrajectoryStep, ParticleTrajectory
 
-def bsi_full(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind):
+
+def bsi_full(model: FFBSi, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind):
     """
     Perform backward simulation by drawing particles from
     the categorical distribution with weights given by
@@ -44,7 +45,7 @@ def bsi_full(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind):
     return res
 
 
-def bsi_rs(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, maxpdf, max_iter):
+def bsi_rs(model: FFBSi, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, maxpdf, max_iter):
     """
     Perform backward simulation by using rejection sampling to draw particles
     from the categorical distribution with weights given by
@@ -87,7 +88,8 @@ def bsi_rs(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, maxp
     res[todo] = bsi_full(model, pa, ptraj, pind, future_trajs, todo, ut=ut, yt=yt, tt=tt, cur_ind=cur_ind)
     return res
 
-def bsi_rsas(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, maxpdf, x1, P1, sv, sw, ratio):
+
+def bsi_rsas(model: FFBSi, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, maxpdf, x1, P1, sv, sw, ratio):
     """
     Perform backward simulation by using rejection sampling to draw particles
     from the categorical distribution with weights given by
@@ -153,7 +155,8 @@ def bsi_rsas(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, ma
     res[todo] = bsi_full(model, pa, ptraj, pind, future_trajs, todo, ut=ut, yt=yt, tt=tt, cur_ind=cur_ind)
     return res
 
-def bsi_mcmc(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, R, ancestors):
+
+def bsi_mcmc(model: FFBSi, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, R, ancestors):
     """
     Perform backward simulation by using Metropolis-Hastings to draw particles
     from the categorical distribution with weights given by
@@ -185,8 +188,8 @@ def bsi_mcmc(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, R,
     for _j in range(R):
         propind = numpy.random.permutation(pf.sample(weights, M))
         pprop = model.logp_xnext_full(pa.part[propind], ptraj, pind[propind],
-                                   future_trajs, find,
-                                   ut=ut, yt=yt, tt=tt, cur_ind=cur_ind)
+                                      future_trajs, find,
+                                      ut=ut, yt=yt, tt=tt, cur_ind=cur_ind)
         diff = pprop - pcurr
         diff[diff > 0.0] = 0.0
         test = numpy.log(numpy.random.uniform(size=M))
@@ -195,6 +198,7 @@ def bsi_mcmc(model, pa, ptraj, pind, future_trajs, find, ut, yt, tt, cur_ind, R,
         pcurr[accept] = pprop[accept]
 
     return ind
+
 
 class SmoothTrajectory(object):
     """
@@ -208,7 +212,7 @@ class SmoothTrajectory(object):
      - options (dict): options to pass on to the smoothing algorithm
     """
 
-    def __init__(self, pt, M=1, method='full', options=None):
+    def __init__(self, pt: ParticleTrajectory, M: int = 1, method: str = 'full', options: dict = None):
 
         self.traj = None
 
@@ -219,7 +223,7 @@ class SmoothTrajectory(object):
 
         self.model = pt.pf.model
         if (method == 'full' or method == 'mcmc' or method == 'rs' or
-            method == 'rsas'):
+                method == 'rsas'):
             self.perform_bsi(pt=pt, M=M, method=method, options=options)
         elif (method == 'ancestor'):
             self.perform_ancestors(pt=pt, M=M)
@@ -281,25 +285,23 @@ class SmoothTrajectory(object):
                                              ut=self.u, yt=self.y,
                                              tt=self.t, cur_ind=T - 1)
 
-
         traj = numpy.empty((len(pt),), dtype=object)
         traj[T - 1] = TrajectoryStep(ParticleApproximation(last_part),
-                                       numpy.arange(M, dtype=int))
+                                     numpy.arange(M, dtype=int))
 
         for t in reversed(range(T - 1)):
-
             ind = ancestors
             ancestors = pt[t].ancestors[ind]
             # Select 'previous' particle
             traj[t] = TrajectoryStep(ParticleApproximation(self.model.sample_smooth(part=pt[t].pa.part[ind],
-                                                          ptraj=pt[:t],
-                                                          anc=ancestors,
-                                                          future_trajs=traj[(t + 1):],
-                                                          find=find,
-                                                          ut=self.u,
-                                                          yt=self.y,
-                                                          tt=self.t,
-                                                          cur_ind=t)),
+                                                                                    ptraj=pt[:t],
+                                                                                    anc=ancestors,
+                                                                                    future_trajs=traj[(t + 1):],
+                                                                                    find=find,
+                                                                                    ut=self.u,
+                                                                                    yt=self.y,
+                                                                                    tt=self.t,
+                                                                                    cur_ind=t)),
                                      ancestors=find)
         return traj
 
@@ -416,10 +418,9 @@ class SmoothTrajectory(object):
             self.traj[cur_ind] = TrajectoryStep(ParticleApproximation(tmp),
                                                 numpy.arange(M, dtype=int))
 
-#        if hasattr(self.model, 'post_smoothing'):
-#            # Do e.g. constrained smoothing for RBPS models
-#            self.traj = self.model.post_smoothing(self)
-
+    #        if hasattr(self.model, 'post_smoothing'):
+    #            # Do e.g. constrained smoothing for RBPS models
+    #            self.traj = self.model.post_smoothing(self)
 
     def perform_mhbp(self, pt, M, R, reduced=False):
         """
@@ -443,14 +444,14 @@ class SmoothTrajectory(object):
         tmp = tmp / numpy.sum(tmp)
         cind = pf.sample(tmp, M)
         find = numpy.arange(M, dtype=int)
-#        anc = pt[-1].ancestors[cind]
-#        last_part = self.model.sample_smooth(part=pt[-1].pa.part[cind],
-#                                             ptraj=pt[:-1],
-#                                             anc=anc,
-#                                             future_trajs=None,
-#                                             find=find,
-#                                             ut=ut, yt=yt, tt=tt,
-#                                             cur_ind=T - 1)
+        #        anc = pt[-1].ancestors[cind]
+        #        last_part = self.model.sample_smooth(part=pt[-1].pa.part[cind],
+        #                                             ptraj=pt[:-1],
+        #                                             anc=anc,
+        #                                             future_trajs=None,
+        #                                             find=find,
+        #                                             ut=ut, yt=yt, tt=tt,
+        #                                             cur_ind=T - 1)
 
         for t in reversed(range(T)):
 
@@ -477,7 +478,6 @@ class SmoothTrajectory(object):
                 if (t > 0):
                     # Propose new ancestors
                     panc = pf.sample(tmp, M)
-
 
                 (pnew, acc) = mc_step(model=self.model,
                                       part=pnew,
@@ -510,7 +510,6 @@ class SmoothTrajectory(object):
             # Do e.g. constrained smoothing for RBPS models
             self.traj = self.model.post_smoothing(self)
 
-
     def perform_mhips_pass(self, options, reduced=False):
         """
         Runs MHIPS with the proposal density q as p(x_{t+1}|x_t)
@@ -531,13 +530,13 @@ class SmoothTrajectory(object):
         straj = numpy.empty((T,), dtype=object)
         pt = self.traj[:T - 1]
         (part, _acc) = mc_step(model=self.model,
-                              part=self.traj[-1].pa.part,
-                              ptraj=pt,
-                              pind_prop=pind,
-                              pind_curr=pind,
-                              future_trajs=None, find=pind,
-                              ut=ut, yt=yt, tt=tt, cur_ind=T - 1,
-                              reduced=reduced)
+                               part=self.traj[-1].pa.part,
+                               ptraj=pt,
+                               pind_prop=pind,
+                               pind_curr=pind,
+                               future_trajs=None, find=pind,
+                               ut=ut, yt=yt, tt=tt, cur_ind=T - 1,
+                               reduced=reduced)
 
         tmp = numpy.copy(self.model.sample_smooth(part=part,
                                                   ptraj=pt,
@@ -549,7 +548,6 @@ class SmoothTrajectory(object):
                                                   tt=tt,
                                                   cur_ind=T - 1))
         straj[T - 1] = TrajectoryStep(ParticleApproximation(tmp), pind)
-
 
         for i in reversed(range(1, (T - 1))):
             ft = straj[(i + 1):]
@@ -569,7 +567,7 @@ class SmoothTrajectory(object):
             # enough space to hold the data, if that is not the case the
             # model class should extend "pre_mhips_pass" to allocate a larger
             # array
-            #self.traj[i].pa.part[acc] = prop[acc]
+            # self.traj[i].pa.part[acc] = prop[acc]
             tmp = self.model.sample_smooth(part=part,
                                            ptraj=pt,
                                            anc=pind,
@@ -581,7 +579,6 @@ class SmoothTrajectory(object):
                                            cur_ind=i)
 
             straj[i] = TrajectoryStep(ParticleApproximation(tmp), pind)
-
 
         ft = straj[1:]
 
@@ -632,9 +629,11 @@ class SmoothTrajectory(object):
         return est
 
 
-def mc_step(model, part, ptraj, pind_prop, pind_curr, future_trajs, find,
+def mc_step(model: ParticleFiltering, part, ptraj, pind_prop, pind_curr, future_trajs, find,
             ut, yt, tt, cur_ind, reduced):
     """
+    FIXME: mm note: this method is a mess. Model can be ParticleFiltering, or FFBSi or wtf he knows..
+
     Perform a single iteration of the MCMC sampler used for MHIPS and MHBP
 
     Args:
@@ -768,7 +767,6 @@ def mc_step(model, part, ptraj, pind_prop, pind_curr, future_trajs, find,
     else:
         logp_next_prop = 0.0
         logp_next_curr = 0.0
-
 
     # Calc ratio
     ratio = ((logp_prev_prop - logp_prev_curr) +
